@@ -18,6 +18,7 @@ app.get('/sum', (req, res) => {
     const b = req.query.b;
 
     //validate that the right query parameters are included
+    //400 error means that the request was not done properly by the client and the server can't satisfy the request
     if(!a || isNaN(a)){
         return(res.status(400).send('Please provide a numeric value for a'));
     }
@@ -70,6 +71,65 @@ app.get('/cipher', (req, res) => {
     //send the response
     res.send(caesarCipher);
 });
+
+/******* 
+ * pracetice drill 3 - endpoint = /lotto
+ * endpoint accepts an array of 6 distict numbers between 1 and 20 named numbers (in query parameter, repeat string with the diff values)
+ * function randomly generates 6 numbers between 1 and 20
+ * determine how many numbers match between function outputs and query parameters
+ ********/
+
+app.get('/lotto', (req, res) => {
+    let message = '';
+    let userArray = req.query.numbers;
+    //generate 6 random numbers between 1 and 20 
+    const funcArray = Array.from({length: 6}, () => Math.floor(Math.random() * 20) + 1);
+
+    //make sure array has 6 numbers, convert strings to nums if so
+    if(userArray.length !== 6 || userArray.some(isNaN)){
+        return(res.status(400).send('Please send 6 numeric values.'));
+    }else{
+        userArray = userArray.map(Number);
+    }
+    //make sure array values are distinct numbers and between 1 and 20
+    userArray.sort();
+
+    for(let i = 0; i < userArray.length; i++){
+        if(userArray[i] > 20 || userArray[i] < 1){
+            return(res.status(400).send('Please send a numeric value between 1 and 20.'));
+        }
+        if(userArray[i] === userArray[i+1]){
+            return(res.status(400).send('Please send 6 numeric values without duplicates.'));
+        }
+        
+    }
+
+    //compare user values with randomly generated values
+    let matches = 0;
+    for(let userNum of userArray){
+        for(let funcNum of funcArray){
+            if(userNum === funcNum){
+                matches++;
+            }
+        }
+    }
+
+    if(matches < 4){
+        message = "Sorry, you lose";
+    }else if(matches === 4){
+        message = "Congratulations, you win a free ticket";
+    }else if(matches === 5){
+        message = "Congratulations! You win $100!";
+    }else if(matches === 6){
+        message = "Wow! Unbelievable! You could have won the mega millions!";
+    }
+
+    console.log(userArray);
+    console.log(funcArray);
+
+    res.send(message);
+});
+    
 
 // server needs to listen to a specific port (ex. 8000) so that requests to that port are correctly routed to the server
 app.listen(8000, () => {
