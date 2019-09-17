@@ -3,14 +3,20 @@
 //to use express, need to require the package
 const express = require('express'); 
 
+//morgan logs details of a request
+const morgan = require('morgan');
+
+const playstore = require('./playstore.js');
+
 //express module exports a top-level function, which creates a new app object that encapsulates the functionality of your express server
 //invoke express function to create the application 
 const app = express();
 
+/************************ checkpoint 3 *****************/
 /******* 
  * practice drill 1: create a route handler function on the path /sum
  * should accept query parameters a and ba nd find their sum 
- ********/
+********/
 
 app.get('/sum', (req, res) => {
     //req.query gets the query parameters as an object
@@ -30,7 +36,7 @@ app.get('/sum', (req, res) => {
     const message = `The sum of ${a} and ${b} is ${Number(a)+Number(b)}`;
 
     //send the response
-    res.send(message);
+    res.status(200).send(message);
 });
 
 /******* 
@@ -69,7 +75,7 @@ app.get('/cipher', (req, res) => {
         caesarCipher += String.fromCharCode(caesarCharCode);
     }
     //send the response
-    res.send(caesarCipher);
+    res.status(200).send(caesarCipher);
 });
 
 /******* 
@@ -129,7 +135,33 @@ app.get('/lotto', (req, res) => {
 
     res.send(message);
 });
+
+/****** checkpoint  4 assignment *******/
+//return all apps in the playstore by default
+//optionally allow users to sort results by rating or app, and filter by genre one of ['Action', 'Puzzle', 'Strategy', 'Casual', 'Arcade', 'Card']	
+app.get('/apps', (req, res) => {
+    //these query parameters aren't required, so if not provided, can default to "" 
+    const { genre = "", sort = "" } = req.query;
+
+    if(!['', 'Action', 'Puzzle', 'Strategy', 'Casual', 'Arcade', 'Card'].includes(genre)){
+        return res.status(400).send(`Genre must be one of ['Action', 'Puzzle', 'Strategy', 'Casual', 'Arcade', 'Card']`);
+    }
+
+    if(!['', 'Rating', 'App'].includes(sort)){
+        return res.status(400).send(`Sort must be one of ['Rating', 'App']`);
+    }
     
+    let results = playstore.filter(playstoreApp => playstoreApp.Genres.includes(genre));
+    
+    if(sort === 'Rating'){
+        results.sort((a, b) => (a.Rating > b.Rating) ? 1 : -1);
+    }else if( sort === 'App'){
+        results.sort((a,b) => (a.App > b.App) ? 1 : -1);
+    }
+  
+
+    res.send(results);
+});
 
 // server needs to listen to a specific port (ex. 8000) so that requests to that port are correctly routed to the server
 app.listen(8000, () => {
