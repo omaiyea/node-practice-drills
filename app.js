@@ -160,10 +160,7 @@ app.get('/apps', (req, res) => {
     }
   
 
-    res.send(results);
+    res.status(200).send(results);
 });
 
-// server needs to listen to a specific port (ex. 8000) so that requests to that port are correctly routed to the server
-app.listen(8000, () => {
-    console.log('express server is listening on port 8000!');
-});
+module.exports = app;
